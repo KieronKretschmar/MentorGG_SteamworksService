@@ -1,0 +1,3 @@
+[submodule "steamworksconnectionlinux"]
+	path = steamworksconnectionlinux
+	url = https://gitlab.com/mentorgg/csgo/steamworksconnectionlinux.git

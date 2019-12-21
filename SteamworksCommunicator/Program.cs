@@ -1,12 +1,22 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
 
 namespace SteamworksCommunicator
 {
     class Program
     {
-        static void Main(string[] args)
+
+        public static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            IServiceCollection services = new ServiceCollection();
+
+            Startup startup = new Startup();
+            startup.ConfigureServices(services);
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+
         }
     }
 }
+

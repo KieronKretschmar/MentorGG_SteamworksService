@@ -1,3 +1,6 @@
 [submodule "steamworksconnectionlinux"]
 	path = steamworksconnectionlinux
 	url = https://gitlab.com/mentorgg/csgo/steamworksconnectionlinux.git
+[submodule "rabbitcommunicationlib"]
+	path = rabbitcommunicationlib
+	url = git@gitlab.com:mentorgg/engine/RabbitCommunicationLib.git

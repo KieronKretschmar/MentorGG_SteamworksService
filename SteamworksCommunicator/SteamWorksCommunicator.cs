@@ -7,20 +7,27 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SharingCodeGatherer
 {
     public interface ISteamWorksCommunicator
     {
-        Task<GathererTransferModel> GetMatchData(long steamId, string sharingCode);
+        GathererTransferModel GetMatchData(long steamId, string sharingCode);
     }
 
+    /// <summary>
+    /// To guarantee 1-by-1 execution of GetMatchData(), making the method synchronous and using a lock seems to be necessary. 
+    /// Whether this service is added with AddTransient or AddSingleton to services does not seem to matter.
+    /// </summary>
     public class SteamWorksCommunicator : ISteamWorksCommunicator
     {
         private const string PipeNameOut = "/tmp/swcpipei";
         private const string PipeNameIn = "/tmp/swcpipeo";
         private readonly ILogger<ISteamWorksCommunicator> _logger;
+        public static string debugLog = "";
+        private static readonly Object obj = new Object();
 
         public SteamWorksCommunicator(ILogger<ISteamWorksCommunicator> logger)
         {
@@ -33,28 +40,31 @@ namespace SharingCodeGatherer
         /// <param name="steamId"></param>
         /// <param name="sharingCode"></param>
         /// <returns></returns>
-        public async Task<GathererTransferModel> GetMatchData(long steamId, string sharingCode)
+        public GathererTransferModel GetMatchData(long steamId, string sharingCode)
         {
-            using (NamedPipeClientStream pipeOut = new NamedPipeClientStream(".", PipeNameOut, PipeDirection.Out))
+            lock (obj)
             {
-                pipeOut.Connect();                
-                using (StreamWriter sw = new StreamWriter(pipeOut))
+                using (NamedPipeClientStream pipeOut = new NamedPipeClientStream(".", PipeNameOut, PipeDirection.Out))
                 {
-                    var pipeMessage = DecodeSC(sharingCode).ToPipeFormat();
-                    await sw.WriteLineAsync(pipeMessage);
-                    await sw.FlushAsync();
+                    pipeOut.Connect();
+                    using (StreamWriter sw = new StreamWriter(pipeOut))
+                    {
+                        var pipeMessage = DecodeSC(sharingCode).ToPipeFormat();
+                        sw.WriteLine(pipeMessage);
+                        sw.Flush();
+                    }
                 }
-            }
 
-            using (NamedPipeClientStream pipeIn = new NamedPipeClientStream(".", PipeNameIn, PipeDirection.In)) 
-            {
-                pipeIn.Connect();
-                using (StreamReader sr = new StreamReader(pipeIn))
+                using (NamedPipeClientStream pipeIn = new NamedPipeClientStream(".", PipeNameIn, PipeDirection.In))
                 {
-                    var response = await sr.ReadLineAsync();
+                    pipeIn.Connect();
+                    using (StreamReader sr = new StreamReader(pipeIn))
+                    {
+                        var response = sr.ReadLine();
 
-                    TryDecodeResponse(response, steamId, out var demo);
-                    return demo;
+                        TryDecodeResponse(response, steamId, out var demo);
+                        return demo;
+                    }
                 }
             }
         }

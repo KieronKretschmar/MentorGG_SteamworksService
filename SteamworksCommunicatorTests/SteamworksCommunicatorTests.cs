@@ -50,10 +50,14 @@ namespace SteamWorksAPITests
         {
             var steamId = (long)new Random().Next(1, 99999999);
             var swComm = serviceProvider.GetService<ISteamWorksCommunicator>();
-            var matchData = await swComm.GetMatchData(steamId, sharingCode);
+            var matchData = swComm.GetMatchData(steamId, sharingCode);
             Assert.AreEqual(matchData.DownloadUrl, expectedUrl);
         }
 
+        /// <summary>
+        /// Tests calling GetMatchData in short intervals and whether the expected results are returned. 
+        /// </summary>
+        /// <returns></returns>
         [TestMethod]
         public async Task TranslateMultipleSharingCodes()
         {
@@ -82,7 +86,7 @@ namespace SteamWorksAPITests
             var tasks = new List<Task>();
             foreach (var sharingCode in sharingCodeUrlPairs.Keys)
             {
-                tasks.Add(swComm.GetMatchData(steamId, sharingCode));
+                swComm.GetMatchData(steamId, sharingCode);
             }
             tasks.ForEach(x => x.Start());
             Task.WaitAll(tasks.ToArray());

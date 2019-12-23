@@ -36,6 +36,8 @@ namespace SharingCodeGatherer
 
         /// <summary>
         /// Writes the sharingCode to pipe and returns a SteamworksData object based on the response.
+        /// 
+        /// Throws Exceptions: TimeoutException
         /// </summary>
         /// <param name="steamId"></param>
         /// <param name="sharingCode"></param>
@@ -46,7 +48,16 @@ namespace SharingCodeGatherer
             {
                 using (NamedPipeClientStream pipeOut = new NamedPipeClientStream(".", PipeNameOut, PipeDirection.Out))
                 {
-                    pipeOut.Connect();
+                    try
+                    {
+                        pipeOut.Connect(1000);
+                    }
+                    catch (TimeoutException e)
+                    {
+                        _logger.LogError($"Could not connect to {PipeNameOut}", e);
+                        throw;
+                    }
+
                     using (StreamWriter sw = new StreamWriter(pipeOut))
                     {
                         var pipeMessage = DecodeSC(sharingCode).ToPipeFormat();
@@ -57,7 +68,15 @@ namespace SharingCodeGatherer
 
                 using (NamedPipeClientStream pipeIn = new NamedPipeClientStream(".", PipeNameIn, PipeDirection.In))
                 {
-                    pipeIn.Connect();
+                    try
+                    {
+                        pipeIn.Connect(1000);
+                    }
+                    catch (TimeoutException e)
+                    {
+                        _logger.LogError($"Could not connect to {PipeNameIn}", e);
+                        throw;
+                    }
                     using (StreamReader sr = new StreamReader(pipeIn))
                     {
                         var response = sr.ReadLine();

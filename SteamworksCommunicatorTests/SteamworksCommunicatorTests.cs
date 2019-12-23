@@ -48,9 +48,8 @@ namespace SteamWorksAPITests
         [DataTestMethod]
         public async Task TranslateSharingCode(string sharingCode, string expectedUrl)
         {
-            var steamId = (long)new Random().Next(1, 99999999);
             var swComm = serviceProvider.GetService<ISteamWorksCommunicator>();
-            var matchData = swComm.GetMatchData(steamId, sharingCode);
+            var matchData = swComm.GetMatchData(sharingCode);
             Assert.AreEqual(matchData.DownloadUrl, expectedUrl);
         }
 
@@ -80,13 +79,12 @@ namespace SteamWorksAPITests
                 {"CSGO-qa4uP-CmE88-KMJ3D-6wnMK-hJQBD", "http://replay185.valve.net/730/003380634654217338988_1811026012.dem.bz2"},
                 {"CSGO-zadwr-Nz7Lb-TcnmS-y8Tbr-oNBYN", "http://replay136.valve.net/730/003380712199851868366_0354182261.dem.bz2" },
             };
-            var steamId = (long)new Random().Next(1, 99999999);
             var swComm = serviceProvider.GetService<ISteamWorksCommunicator>();
 
             var tasks = new List<Task>();
             foreach (var sharingCode in sharingCodeUrlPairs.Keys)
             {
-                swComm.GetMatchData(steamId, sharingCode);
+                swComm.GetMatchData(sharingCode);
             }
             tasks.ForEach(x => x.Start());
             Task.WaitAll(tasks.ToArray());

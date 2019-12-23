@@ -14,7 +14,7 @@ namespace SharingCodeGatherer
 {
     public interface ISteamWorksCommunicator
     {
-        GathererTransferModel GetMatchData(long steamId, string sharingCode);
+        SteamworksData GetMatchData(string sharingCode);
     }
 
     /// <summary>
@@ -35,12 +35,12 @@ namespace SharingCodeGatherer
         }
 
         /// <summary>
-        /// Writes the sharingCode to pipe and returns a GathererTransferModel based on the response.
+        /// Writes the sharingCode to pipe and returns a SteamworksData object based on the response.
         /// </summary>
         /// <param name="steamId"></param>
         /// <param name="sharingCode"></param>
         /// <returns></returns>
-        public GathererTransferModel GetMatchData(long steamId, string sharingCode)
+        public SteamworksData GetMatchData(string sharingCode)
         {
             lock (obj)
             {
@@ -62,7 +62,7 @@ namespace SharingCodeGatherer
                     {
                         var response = sr.ReadLine();
 
-                        TryDecodeResponse(response, steamId, out var demo);
+                        TryDecodeResponse(response, out var demo);
                         return demo;
                     }
                 }
@@ -114,9 +114,9 @@ namespace SharingCodeGatherer
             }
         }
 
-        private bool TryDecodeResponse(string response, long steamId, out GathererTransferModel model)
+        private bool TryDecodeResponse(string response, out SteamworksData model)
         {
-            model = new GathererTransferModel();
+            model = new SteamworksData();
             try
             {
                 if (response.Substring(0, 6) == "--demo")
@@ -127,7 +127,6 @@ namespace SharingCodeGatherer
                     var timestamp = long.Parse(sections[1]);
                     DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
                     model.MatchDate = origin.AddSeconds(timestamp);
-                    model.UploaderId = steamId;
                     return true;
                 }
                 _logger.LogInformation($"Response did not start with --demo. Response: {response}");
@@ -135,11 +134,10 @@ namespace SharingCodeGatherer
             }
             catch (Exception e)
             {
-                model = new GathererTransferModel();
+                model = new SteamworksData();
                 _logger.LogError($"Error decoding response: {response}", e);
                 return false;
             }
-
         }
     }
 

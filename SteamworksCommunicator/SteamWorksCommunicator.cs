@@ -18,6 +18,8 @@ namespace SharingCodeGatherer
     }
 
     /// <summary>
+    /// Communicates with SteamworksConnection via pipes to get match related data from sharingcodes.
+    /// 
     /// To guarantee 1-by-1 execution of GetMatchData(), making the method synchronous and using a lock seems to be necessary. 
     /// Whether this service is added with AddTransient or AddSingleton to services does not seem to matter.
     /// </summary>

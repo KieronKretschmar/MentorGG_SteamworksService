@@ -23,8 +23,8 @@ namespace SharingCodeGatherer
     /// </summary>
     public class SteamWorksCommunicator : ISteamWorksCommunicator
     {
-        private const string PipeNameOut = "/tmp/swcpipei";
-        private const string PipeNameIn = "/tmp/swcpipeo";
+        private const string pipeNameOut = "/tmp/swcpipei";
+        private const string pipeNameIn = "/tmp/swcpipeo";
         private readonly ILogger<ISteamWorksCommunicator> _logger;
         private static readonly Object obj = new Object();
 
@@ -45,7 +45,7 @@ namespace SharingCodeGatherer
         {
             lock (obj)
             {
-                using (NamedPipeClientStream pipeOut = new NamedPipeClientStream(".", PipeNameOut, PipeDirection.Out))
+                using (NamedPipeClientStream pipeOut = new NamedPipeClientStream(".", pipeNameOut, PipeDirection.Out))
                 {
                     try
                     {
@@ -53,7 +53,7 @@ namespace SharingCodeGatherer
                     }
                     catch (TimeoutException e)
                     {
-                        _logger.LogError($"Could not connect to {PipeNameOut}", e);
+                        _logger.LogError($"Could not connect to {pipeNameOut}", e);
                         throw;
                     }
 
@@ -65,7 +65,7 @@ namespace SharingCodeGatherer
                     }
                 }
 
-                using (NamedPipeClientStream pipeIn = new NamedPipeClientStream(".", PipeNameIn, PipeDirection.In))
+                using (NamedPipeClientStream pipeIn = new NamedPipeClientStream(".", pipeNameIn, PipeDirection.In))
                 {
                     try
                     {
@@ -73,7 +73,7 @@ namespace SharingCodeGatherer
                     }
                     catch (TimeoutException e)
                     {
-                        _logger.LogError($"Could not connect to {PipeNameIn}", e);
+                        _logger.LogError($"Could not connect to {pipeNameIn}", e);
                         throw;
                     }
                     using (StreamReader sr = new StreamReader(pipeIn))
@@ -91,7 +91,7 @@ namespace SharingCodeGatherer
         {
             try
             {
-                const string DICTIONARY = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefhijkmnopqrstuvwxyz23456789";
+                const string sharingCodeDictionary = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefhijkmnopqrstuvwxyz23456789";
 
                 //trim 'CSGO' and all the dashes to prepare base57 decode
                 if (sc.StartsWith("CSGO"))
@@ -103,7 +103,7 @@ namespace SharingCodeGatherer
                 BigInteger num = BigInteger.Zero;
                 foreach (var c in sc.ToCharArray().Reverse())
                 {
-                    num = BigInteger.Multiply(num, DICTIONARY.Length) + DICTIONARY.IndexOf(c);
+                    num = BigInteger.Multiply(num, sharingCodeDictionary.Length) + sharingCodeDictionary.IndexOf(c);
                 }
 
                 var data = num.ToByteArray().ToArray();

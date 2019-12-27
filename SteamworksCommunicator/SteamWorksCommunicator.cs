@@ -26,7 +26,6 @@ namespace SharingCodeGatherer
         private const string PipeNameOut = "/tmp/swcpipei";
         private const string PipeNameIn = "/tmp/swcpipeo";
         private readonly ILogger<ISteamWorksCommunicator> _logger;
-        public static string debugLog = "";
         private static readonly Object obj = new Object();
 
         public SteamWorksCommunicator(ILogger<ISteamWorksCommunicator> logger)

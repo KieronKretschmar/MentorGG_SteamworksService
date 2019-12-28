@@ -61,8 +61,7 @@ namespace SharingCodeGatherer
 
                     using (StreamWriter sw = new StreamWriter(pipeOut))
                     {
-                        var pipeMessage = DecodeSC(sharingCode).ToPipeFormat();
-                        sw.WriteLine(pipeMessage);
+                        sw.WriteLine(sharingCode);
                         sw.Flush();
                     }
                 }
@@ -86,51 +85,6 @@ namespace SharingCodeGatherer
                         return demo;
                     }
                 }
-            }
-        }
-
-        private SharingCodeDecoded DecodeSC(string sc)
-        {
-            try
-            {
-                const string sharingCodeDictionary = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefhijkmnopqrstuvwxyz23456789";
-
-                //trim 'CSGO' and all the dashes to prepare base57 decode
-                if (sc.StartsWith("CSGO"))
-                {
-                    sc = sc.Substring(4);
-                }
-                sc = sc.Replace("-", "");
-
-                BigInteger num = BigInteger.Zero;
-                foreach (var c in sc.ToCharArray().Reverse())
-                {
-                    num = BigInteger.Multiply(num, sharingCodeDictionary.Length) + sharingCodeDictionary.IndexOf(c);
-                }
-
-                var data = num.ToByteArray().ToArray();
-
-                //unsigned fix
-                if (data.Length == 2 * sizeof(UInt64) + sizeof(UInt16))
-                {
-                    data = data.Concat(new byte[] { 0 }).ToArray();
-                }
-
-                data = data.Reverse().ToArray();
-
-                SharingCodeDecoded result = new SharingCodeDecoded();
-
-                result.MatchId = BitConverter.ToUInt64(data, 1);
-                result.OutcomeId = BitConverter.ToUInt64(data, 1 + sizeof(UInt64));
-                result.Token = BitConverter.ToUInt16(data, 1 + 2 * sizeof(UInt64));
-
-                return result;
-
-            }
-            catch (Exception)
-            {
-                _logger.LogError($"Error Decoding SC: {sc}");
-                throw;
             }
         }
 
@@ -158,19 +112,6 @@ namespace SharingCodeGatherer
                 _logger.LogError($"Error decoding response: {response}", e);
                 return false;
             }
-        }
-    }
-
-
-    public struct SharingCodeDecoded
-    {
-        public UInt64 MatchId;
-        public UInt64 OutcomeId;
-        public UInt16 Token;
-
-        public string ToPipeFormat()
-        {
-            return String.Format("{0}|{1}|{2}", MatchId, OutcomeId, Token);
         }
     }
 }

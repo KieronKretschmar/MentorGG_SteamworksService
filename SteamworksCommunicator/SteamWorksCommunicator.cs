@@ -18,15 +18,16 @@ namespace SharingCodeGatherer
     }
 
     /// <summary>
+    /// Communicates with SteamworksConnection via pipes to get match related data from sharingcodes.
+    /// 
     /// To guarantee 1-by-1 execution of GetMatchData(), making the method synchronous and using a lock seems to be necessary. 
     /// Whether this service is added with AddTransient or AddSingleton to services does not seem to matter.
     /// </summary>
     public class SteamWorksCommunicator : ISteamWorksCommunicator
     {
-        private const string PipeNameOut = "/tmp/swcpipei";
-        private const string PipeNameIn = "/tmp/swcpipeo";
+        private const string pipeNameOut = "/tmp/swcpipei";
+        private const string pipeNameIn = "/tmp/swcpipeo";
         private readonly ILogger<ISteamWorksCommunicator> _logger;
-        public static string debugLog = "";
         private static readonly Object obj = new Object();
 
         public SteamWorksCommunicator(ILogger<ISteamWorksCommunicator> logger)
@@ -46,7 +47,7 @@ namespace SharingCodeGatherer
         {
             lock (obj)
             {
-                using (NamedPipeClientStream pipeOut = new NamedPipeClientStream(".", PipeNameOut, PipeDirection.Out))
+                using (NamedPipeClientStream pipeOut = new NamedPipeClientStream(".", pipeNameOut, PipeDirection.Out))
                 {
                     try
                     {
@@ -54,19 +55,18 @@ namespace SharingCodeGatherer
                     }
                     catch (TimeoutException e)
                     {
-                        _logger.LogError($"Could not connect to {PipeNameOut}", e);
+                        _logger.LogError($"Could not connect to {pipeNameOut}", e);
                         throw;
                     }
 
                     using (StreamWriter sw = new StreamWriter(pipeOut))
                     {
-                        var pipeMessage = DecodeSC(sharingCode).ToPipeFormat();
-                        sw.WriteLine(pipeMessage);
+                        sw.WriteLine(sharingCode);
                         sw.Flush();
                     }
                 }
 
-                using (NamedPipeClientStream pipeIn = new NamedPipeClientStream(".", PipeNameIn, PipeDirection.In))
+                using (NamedPipeClientStream pipeIn = new NamedPipeClientStream(".", pipeNameIn, PipeDirection.In))
                 {
                     try
                     {
@@ -74,7 +74,7 @@ namespace SharingCodeGatherer
                     }
                     catch (TimeoutException e)
                     {
-                        _logger.LogError($"Could not connect to {PipeNameIn}", e);
+                        _logger.LogError($"Could not connect to {pipeNameIn}", e);
                         throw;
                     }
                     using (StreamReader sr = new StreamReader(pipeIn))
@@ -85,51 +85,6 @@ namespace SharingCodeGatherer
                         return demo;
                     }
                 }
-            }
-        }
-
-        private SharingCodeDecoded DecodeSC(string sc)
-        {
-            try
-            {
-                const string DICTIONARY = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefhijkmnopqrstuvwxyz23456789";
-
-                //trim 'CSGO' and all the dashes to prepare base57 decode
-                if (sc.StartsWith("CSGO"))
-                {
-                    sc = sc.Substring(4);
-                }
-                sc = sc.Replace("-", "");
-
-                BigInteger num = BigInteger.Zero;
-                foreach (var c in sc.ToCharArray().Reverse())
-                {
-                    num = BigInteger.Multiply(num, DICTIONARY.Length) + DICTIONARY.IndexOf(c);
-                }
-
-                var data = num.ToByteArray().ToArray();
-
-                //unsigned fix
-                if (data.Length == 2 * sizeof(UInt64) + sizeof(UInt16))
-                {
-                    data = data.Concat(new byte[] { 0 }).ToArray();
-                }
-
-                data = data.Reverse().ToArray();
-
-                SharingCodeDecoded result = new SharingCodeDecoded();
-
-                result.MatchId = BitConverter.ToUInt64(data, 1);
-                result.OutcomeId = BitConverter.ToUInt64(data, 1 + sizeof(UInt64));
-                result.Token = BitConverter.ToUInt16(data, 1 + 2 * sizeof(UInt64));
-
-                return result;
-
-            }
-            catch (Exception)
-            {
-                _logger.LogError($"Error Decoding SC: {sc}");
-                throw;
             }
         }
 
@@ -157,19 +112,6 @@ namespace SharingCodeGatherer
                 _logger.LogError($"Error decoding response: {response}", e);
                 return false;
             }
-        }
-    }
-
-
-    public struct SharingCodeDecoded
-    {
-        public UInt64 MatchId;
-        public UInt64 OutcomeId;
-        public UInt16 Token;
-
-        public string ToPipeFormat()
-        {
-            return String.Format("{0}|{1}|{2}", MatchId, OutcomeId, Token);
         }
     }
 }

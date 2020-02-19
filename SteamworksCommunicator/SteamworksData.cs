@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SharingCodeGatherer
+namespace SteamworksService
 {
     /// <summary>
     /// Holds data coming from SteamworksConnection

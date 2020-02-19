@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using RabbitTransfer.TransferModels;
+using SteamworksService;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,9 +10,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SharingCodeGatherer
+namespace SteamworksService
 {
-    public interface ISteamWorksCommunicator
+    public interface ISteamworksCommunicator
     {
         SteamworksData GetMatchData(string sharingCode);
     }
@@ -23,14 +23,12 @@ namespace SharingCodeGatherer
     /// To guarantee 1-by-1 execution of GetMatchData(), making the method synchronous and using a lock seems to be necessary. 
     /// Whether this service is added with AddTransient or AddSingleton to services does not seem to matter.
     /// </summary>
-    public class SteamWorksCommunicator : ISteamWorksCommunicator
+    public class SteamworksCommunicator : ISteamworksCommunicator
     {
-        private const string pipeNameOut = "/tmp/swcpipei";
-        private const string pipeNameIn = "/tmp/swcpipeo";
-        private readonly ILogger<ISteamWorksCommunicator> _logger;
+        private readonly ILogger<ISteamworksCommunicator> _logger;
         private static readonly Object obj = new Object();
 
-        public SteamWorksCommunicator(ILogger<ISteamWorksCommunicator> logger)
+        public SteamworksCommunicator(ILogger<ISteamworksCommunicator> logger)
         {
             _logger = logger;
         }
@@ -47,71 +45,117 @@ namespace SharingCodeGatherer
         {
             lock (obj)
             {
-                using (NamedPipeClientStream pipeOut = new NamedPipeClientStream(".", pipeNameOut, PipeDirection.Out))
+                using (NamedPipeClientStream pipeClient =
+                    new NamedPipeClientStream(".", "ShareCodePipe", PipeDirection.InOut))
                 {
-                    try
-                    {
-                        pipeOut.Connect(1000);
-                    }
-                    catch (TimeoutException e)
-                    {
-                        _logger.LogError($"Could not connect to {pipeNameOut}", e);
-                        throw;
-                    }
 
-                    using (StreamWriter sw = new StreamWriter(pipeOut))
+                    // Connect to the pipe or wait until the pipe is available.
+                    pipeClient.Connect();
+
+                    using (StreamReader sr = new StreamReader(pipeClient))
+                    using (StreamWriter sw = new StreamWriter(pipeClient))
                     {
-                        sw.WriteLine(sharingCode);
+                        _logger.LogInformation($"Writing SharingCode [ {sharingCode} ] to pipe.");
+                        var pipeMessage = SharingCodeDecoded.FromSharingCode(sharingCode).ToPipeFormat();
+                        sw.WriteLine(pipeMessage);
                         sw.Flush();
-                    }
-                }
 
-                using (NamedPipeClientStream pipeIn = new NamedPipeClientStream(".", pipeNameIn, PipeDirection.In))
-                {
-                    try
-                    {
-                        pipeIn.Connect(1000);
-                    }
-                    catch (TimeoutException e)
-                    {
-                        _logger.LogError($"Could not connect to {pipeNameIn}", e);
-                        throw;
-                    }
-                    using (StreamReader sr = new StreamReader(pipeIn))
-                    {
                         var response = sr.ReadLine();
 
-                        TryDecodeResponse(response, out var demo);
+                        _logger.LogInformation($"Received response [ {response} ] for [ {sharingCode} ].");
+                        var demo = DecodeResponse(response);
+
+                        _logger.LogInformation($"Decoded response yielding url [ {demo.DownloadUrl} ] and matchdate [ {demo.MatchDate} ] for [ {sharingCode} ].");
                         return demo;
                     }
                 }
             }
         }
 
-        private bool TryDecodeResponse(string response, out SteamworksData model)
+        private SteamworksData DecodeResponse(string response)
         {
-            model = new SteamworksData();
-            try
+
+            if (response.Substring(0, 6) == "--demo")
             {
-                if (response.Substring(0, 6) == "--demo")
+                try
                 {
+                    var model = new SteamworksData();
                     var sections = response.Substring(7).Split('|');
                     model.DownloadUrl = sections[0];
 
                     var timestamp = long.Parse(sections[1]);
                     DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
                     model.MatchDate = origin.AddSeconds(timestamp);
-                    return true;
+                    return model;
                 }
-                _logger.LogInformation($"Response did not start with --demo. Response: {response}");
-                return false;
+                catch (Exception e)
+                {
+                    var msg = $"Error decoding response: {response}";
+                    throw new DecodeResponseFailedException(msg, e);
+                }
             }
-            catch (Exception e)
+            else
             {
-                model = new SteamworksData();
-                _logger.LogError($"Error decoding response: {response}", e);
-                return false;
+                var msg = $"Response did not start with --demo. Response: {response}";
+                throw new DecodeResponseFailedException();
             }
         }
+
+        public struct SharingCodeDecoded
+        {
+            public UInt64 MatchId;
+            public UInt64 OutcomeId;
+            public UInt16 Token;
+
+            public string ToPipeFormat()
+            {
+                return String.Format("{0}|{1}|{2}", MatchId, OutcomeId, Token);
+            }
+
+            public static SharingCodeDecoded FromSharingCode(string sc)
+            {
+                try
+                {
+                    const string DICTIONARY = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefhijkmnopqrstuvwxyz23456789";
+
+                    //trim 'CSGO' and all the dashes to prepare base57 decode
+                    if (sc.StartsWith("CSGO"))
+                    {
+                        sc = sc.Substring(4);
+                    }
+                    sc = sc.Replace("-", "");
+
+                    BigInteger num = BigInteger.Zero;
+                    foreach (var c in sc.ToCharArray().Reverse())
+                    {
+                        num = BigInteger.Multiply(num, DICTIONARY.Length) + DICTIONARY.IndexOf(c);
+                    }
+
+                    var data = num.ToByteArray().ToArray();
+
+                    //unsigned fix
+                    if (data.Length == 2 * sizeof(UInt64) + sizeof(UInt16))
+                    {
+                        data = data.Concat(new byte[] { 0 }).ToArray();
+                    }
+
+                    data = data.Reverse().ToArray();
+
+                    SharingCodeDecoded result = new SharingCodeDecoded();
+
+                    result.MatchId = BitConverter.ToUInt64(data, 1);
+                    result.OutcomeId = BitConverter.ToUInt64(data, 1 + sizeof(UInt64));
+                    result.Token = BitConverter.ToUInt16(data, 1 + 2 * sizeof(UInt64));
+
+                    return result;
+
+                }
+                catch (Exception e)
+                {
+                    throw new DecodeSharingCodeFailedException($"Error Decoding SC {sc}", e);
+                }
+            }
+        }
+
     }
 }

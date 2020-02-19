@@ -2,14 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RabbitTransfer.Interfaces;
-using RabbitTransfer.Producer;
-using RabbitTransfer.Queues;
-using RabbitTransfer.TransferModels;
-using SharingCodeGatherer;
+using RabbitCommunicationLib.Interfaces;
+using RabbitCommunicationLib.Producer;
+using RabbitCommunicationLib.Queues;
+using RabbitCommunicationLib.TransferModels;
 using System;
 
-namespace SteamworksCommunicator
+namespace SteamworksService
 {
     /// <summary>
     /// 
@@ -32,7 +31,7 @@ namespace SteamworksCommunicator
                         o.AddDebug();
                     });
 
-                    services.AddSingleton<ISteamWorksCommunicator, SteamWorksCommunicator>();
+                    services.AddSingleton<ISteamworksCommunicator, SteamworksCommunicator>();
 
                     // Create producer
                     var outConnection = new QueueConnection(
@@ -49,7 +48,7 @@ namespace SteamworksCommunicator
                         hostContext.Configuration.GetValue<string>("AMQP_GATHERER_QUEUE"));
                     services.AddHostedService<GathererConsumer>(sp =>
                     {
-                        return new GathererConsumer(inConnection, sp.GetService<IProducer<GathererTransferModel>>(), sp.GetService<ISteamWorksCommunicator>());
+                        return new GathererConsumer(inConnection, sp.GetService<ILogger<GathererConsumer>>(), sp.GetService<IProducer<GathererTransferModel>>(), sp.GetService<ISteamworksCommunicator>());
                     });
                 });
     }

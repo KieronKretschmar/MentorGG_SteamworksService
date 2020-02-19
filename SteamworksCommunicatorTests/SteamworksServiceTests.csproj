@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SteamworksCommunicator\SteamworksCommunicator.csproj" />
+    <ProjectReference Include="..\SteamworksCommunicator\SteamworksService.csproj" />
   </ItemGroup>
 
 </Project>

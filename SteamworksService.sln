@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29509.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamworksCommunicator", "SteamworksCommunicator\SteamworksCommunicator.csproj", "{24E77200-E0A4-4370-BE86-2D648198A063}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamworksService", "SteamworksCommunicator\SteamworksService.csproj", "{24E77200-E0A4-4370-BE86-2D648198A063}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamworksCommunicatorTests", "SteamworksCommunicatorTests\SteamworksCommunicatorTests.csproj", "{CC167A56-D6CE-4B40-83A8-55DA795696A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamworksServiceTests", "SteamworksCommunicatorTests\SteamworksServiceTests.csproj", "{CC167A56-D6CE-4B40-83A8-55DA795696A5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitTransfer", "rabbitcommunicationlib\RabbitTransfer.csproj", "{A6760016-0D16-43E9-8ECC-A1CA5AE7B6EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitCommunicationLib", "rabbitcommunicationlib\RabbitCommunicationLib.csproj", "{133BE944-7F68-4940-86F1-F4E388C54152}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{CC167A56-D6CE-4B40-83A8-55DA795696A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC167A56-D6CE-4B40-83A8-55DA795696A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC167A56-D6CE-4B40-83A8-55DA795696A5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A6760016-0D16-43E9-8ECC-A1CA5AE7B6EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6760016-0D16-43E9-8ECC-A1CA5AE7B6EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6760016-0D16-43E9-8ECC-A1CA5AE7B6EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6760016-0D16-43E9-8ECC-A1CA5AE7B6EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{133BE944-7F68-4940-86F1-F4E388C54152}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{133BE944-7F68-4940-86F1-F4E388C54152}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{133BE944-7F68-4940-86F1-F4E388C54152}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{133BE944-7F68-4940-86F1-F4E388C54152}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

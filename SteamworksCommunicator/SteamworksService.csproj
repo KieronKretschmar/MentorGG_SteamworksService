@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\rabbitcommunicationlib\RabbitTransfer.csproj" />
+    <ProjectReference Include="..\rabbitcommunicationlib\RabbitCommunicationLib.csproj" />
   </ItemGroup>
 
 </Project>

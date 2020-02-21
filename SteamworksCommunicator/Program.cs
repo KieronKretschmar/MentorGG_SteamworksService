@@ -11,7 +11,7 @@ using System;
 namespace SteamworksService
 {
     /// <summary>
-    /// 
+    ///
     /// Requires environment variables: ["AMQP_URI", "AMQP_GATHERER_QUEUE", "AMQP_DEMOCENTRAL_QUEUE"]
     /// </summary>
     public class Program
@@ -48,7 +48,7 @@ namespace SteamworksService
                         throw new ArgumentException("AMQP_GATHERER_QUEUE is missing, configure the `AMQP_GATHERER_QUEUE` enviroment variable!");
 
 
-                    Console.WriteLine("Enviroment: ");
+                    Console.WriteLine("Environment: ");
                     Console.WriteLine($"AMQP_URI: [ {AMQP_URI} ]");
                     Console.WriteLine($"AMQP_DEMOCENTRAL_QUEUE: [ {AMQP_DEMOCENTRAL_QUEUE} ]");
                     Console.WriteLine($"AMQP_GATHERER_QUEUE: [ {AMQP_GATHERER_QUEUE} ]");

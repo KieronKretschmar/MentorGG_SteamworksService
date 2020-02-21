@@ -71,7 +71,11 @@ namespace SteamworksService
                         AMQP_GATHERER_QUEUE);
                     services.AddHostedService<GathererConsumer>(sp =>
                     {
-                        return new GathererConsumer(inConnection, sp.GetService<ILogger<GathererConsumer>>(), sp.GetService<IProducer<GathererTransferModel>>(), sp.GetService<ISteamworksCommunicator>());
+                        return new GathererConsumer(
+                            inConnection,
+                            sp.GetService<ILogger<GathererConsumer>>(),
+                            sp.GetService<IProducer<GathererTransferModel>>(),
+                            sp.GetService<ISteamworksCommunicator>());
                     });
                 });
     }

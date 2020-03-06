@@ -2,5 +2,5 @@
 	path = steamworksconnectionlinux
 	url = ../../csgo/steamworksconnectionlinux.git
 [submodule "rabbitcommunicationlib"]
-	path = rabbitcommunicationlib
+	path = RabbitCommunicationLib
 	url = ../../engine/RabbitCommunicationLib.git

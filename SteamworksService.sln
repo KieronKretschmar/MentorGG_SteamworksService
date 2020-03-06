@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamworksService", "Steamw
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamworksServiceTests", "SteamworksCommunicatorTests\SteamworksServiceTests.csproj", "{CC167A56-D6CE-4B40-83A8-55DA795696A5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitCommunicationLib", "rabbitcommunicationlib\RabbitCommunicationLib.csproj", "{133BE944-7F68-4940-86F1-F4E388C54152}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitCommunicationLib", "RabbitCommunicationLib\RabbitCommunicationLib.csproj", "{133BE944-7F68-4940-86F1-F4E388C54152}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

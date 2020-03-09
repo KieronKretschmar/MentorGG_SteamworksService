@@ -25,10 +25,13 @@ namespace SteamworksService
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddLogging(o =>
+                    services.AddLogging(services =>
                     {
-                        o.AddConsole();
-                        o.AddDebug();
+                        services.AddConsole(o =>
+                        {
+                            o.TimestampFormat = "[yyyy-MM-dd HH:mm:ss zzz] ";
+                        });
+                        services.AddDebug();
                     });
 
                     services.AddSingleton<ISteamworksCommunicator, SteamworksCommunicator>();

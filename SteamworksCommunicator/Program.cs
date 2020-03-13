@@ -63,9 +63,9 @@ namespace SteamworksService
                     var outConnection = new QueueConnection(
                         AMQP_URI,
                         AMQP_DEMOCENTRAL_QUEUE);
-                    services.AddSingleton<IProducer<GathererTransferModel>>(sp =>
+                    services.AddSingleton<IProducer<DemoInsertInstruction>>(sp =>
                     {
-                        return new Producer<GathererTransferModel>(outConnection);
+                        return new Producer<DemoInsertInstruction>(outConnection);
                     });
 
                     // Create consumer
@@ -77,7 +77,7 @@ namespace SteamworksService
                         return new GathererConsumer(
                             inConnection,
                             sp.GetService<ILogger<GathererConsumer>>(),
-                            sp.GetService<IProducer<GathererTransferModel>>(),
+                            sp.GetService<IProducer<DemoInsertInstruction>>(),
                             sp.GetService<ISteamworksCommunicator>());
                     });
                 });

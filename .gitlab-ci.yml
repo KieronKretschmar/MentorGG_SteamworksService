@@ -11,18 +11,21 @@ release:
     image: mcr.microsoft.com/dotnet/core/sdk:3.0
 
     stage: release
-    #only:
-    #    - /^release-.*$/
+    only:
+        - /^release-.*$/
 
     before_script:
         - dotnet restore RabbitCommunicationLib/
         - dotnet restore SteamworksCommunicator/
 
     script:
-        - dotnet publish SteamworksCommunicator/ -c Release -o out -r win-x64
+        # Split the release tag into the semantic version number
+        # eg. from `release-1.2.3` to `1.2.3`
+        - SEMVER=$(echo $CI_COMMIT_TAG | cut -d "-" -f2)
+        - dotnet publish SteamworksCommunicator/ -c Release -o Release/$SEMVER -r win-x64
 
         
     artifacts:
         paths:
-            - out
+            - Release
 

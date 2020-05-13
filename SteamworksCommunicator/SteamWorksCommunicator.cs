@@ -90,8 +90,19 @@ namespace SteamworksService
                 }
                 catch (Exception e)
                 {
-                    var msg = $"Error decoding response: {response}";
-                    throw new DecodeResponseFailedException(msg, e);
+                    const string notLoggedInResponse = "UNKNOWN_ERROR (3)";
+                    if (response.Contains(notLoggedInResponse))
+                    {
+                        var msg = "Error returned from steamworksconnection. The client is not logged onto Steam.";
+                        _logger.LogWarning(e, msg);
+                        throw new SteamNotLoggedInException(msg, e);
+                    }
+                    else
+                    {
+                        var msg = $"Error decoding response: {response}";
+                        _logger.LogError(e, msg);
+                        throw new DecodeResponseFailedException(msg, e);
+                    }
                 }
             }
             else

@@ -8,6 +8,7 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteamworksService
@@ -54,9 +55,12 @@ namespace SteamworksService
                 return ConsumedMessageHandling.Done;
             }
             // If it seems like a temporary failure, resend message
-            catch (Exception e) when (e is TimeoutException)
+            catch (Exception e) when (e is TimeoutException || e is SteamNotLoggedInException)
             {
-                _logger.LogError($"Message with SharingCode [ {inboundModel.SharingCode} ] could not be handled right now. Instructing the message to be resent, assuming this is a temporary failure.", e);
+                const int retryAfterMilliSeconds = 1000;
+                _logger.LogWarning($"Message with SharingCode [ {inboundModel.SharingCode} ] could not be handled right now. " +
+                    $"Instructing the message to be resent, and sleeping for [ {retryAfterMilliSeconds} ] ms, assuming this is a temporary failure.", e);
+                Thread.Sleep(retryAfterMilliSeconds);
 
                 return ConsumedMessageHandling.Resend;
             }

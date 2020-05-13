@@ -19,6 +19,8 @@ namespace SteamworksService
     /// </summary>
     public class GathererConsumer : Consumer<SharingCodeInstruction>
     {
+        const int RETRY_AFTER_MILLISECONDS = 1000;
+
         private readonly ILogger<GathererConsumer> _logger;
         private readonly IProducer<DemoInsertInstruction> _producer;
         private readonly ISteamworksCommunicator _swComm;
@@ -57,10 +59,9 @@ namespace SteamworksService
             // If it seems like a temporary failure, resend message
             catch (Exception e) when (e is TimeoutException || e is SteamNotLoggedInException)
             {
-                const int retryAfterMilliSeconds = 1000;
                 _logger.LogWarning($"Message with SharingCode [ {inboundModel.SharingCode} ] could not be handled right now. " +
-                    $"Instructing the message to be resent, and sleeping for [ {retryAfterMilliSeconds} ] ms, assuming this is a temporary failure.", e);
-                Thread.Sleep(retryAfterMilliSeconds);
+                    $"Instructing the message to be resent, and sleeping for [ {RETRY_AFTER_MILLISECONDS} ] ms, assuming this is a temporary failure.", e);
+                Thread.Sleep(RETRY_AFTER_MILLISECONDS);
 
                 return ConsumedMessageHandling.Resend;
             }

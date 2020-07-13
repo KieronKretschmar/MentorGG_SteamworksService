@@ -25,7 +25,12 @@ namespace SteamworksService
         private readonly IProducer<DemoInsertInstruction> _producer;
         private readonly ISteamworksCommunicator _swComm;
 
-        public GathererConsumer(IQueueConnection queueConnection, ILogger<GathererConsumer> logger, IProducer<DemoInsertInstruction> producer, ISteamworksCommunicator swComm) : base(queueConnection)
+        public GathererConsumer(
+            IQueueConnection queueConnection, 
+            ILogger<GathererConsumer> logger, 
+            IProducer<DemoInsertInstruction> producer, 
+            ISteamworksCommunicator swComm,
+            ushort prefetchCount) : base(queueConnection, prefetchCount)
         {
             _logger = logger;
             _producer = producer;

@@ -26,6 +26,11 @@ namespace SteamworksService
     public class SteamworksCommunicator : ISteamworksCommunicator
     {
         private readonly ILogger<ISteamworksCommunicator> _logger;
+
+        /// <summary>
+        /// Interval to wait between failed messages.
+        /// </summary>
+        private const int _reconnectTimeout = 30 * 1000;
         private static readonly Object obj = new Object();
 
         public SteamworksCommunicator(ILogger<ISteamworksCommunicator> logger)
@@ -45,28 +50,39 @@ namespace SteamworksService
         {
             lock (obj)
             {
-                using (NamedPipeClientStream pipeClient =
-                    new NamedPipeClientStream(".", "ShareCodePipe", PipeDirection.InOut))
+                while (true)
                 {
-
-                    // Connect to the pipe or wait until the pipe is available.
-                    pipeClient.Connect();
-
-                    using (StreamReader sr = new StreamReader(pipeClient))
-                    using (StreamWriter sw = new StreamWriter(pipeClient))
+                    try
                     {
-                        _logger.LogInformation($"Writing SharingCode [ {sharingCode} ] to pipe.");
-                        var pipeMessage = SharingCodeDecoded.FromSharingCode(sharingCode).ToPipeFormat();
-                        sw.WriteLine(pipeMessage);
-                        sw.Flush();
+                        using (NamedPipeClientStream pipeClient =
+                            new NamedPipeClientStream(".", "ShareCodePipe", PipeDirection.InOut))
+                        {
 
-                        var response = sr.ReadLine();
+                            // Connect to the pipe or wait until the pipe is available.
+                            pipeClient.Connect();
 
-                        _logger.LogInformation($"Received response [ {response} ] for [ {sharingCode} ].");
-                        var demo = DecodeResponse(response);
+                            using (StreamReader sr = new StreamReader(pipeClient))
+                            using (StreamWriter sw = new StreamWriter(pipeClient))
+                            {
+                                _logger.LogInformation($"Writing SharingCode [ {sharingCode} ] to pipe.");
+                                var pipeMessage = SharingCodeDecoded.FromSharingCode(sharingCode).ToPipeFormat();
+                                sw.WriteLine(pipeMessage);
+                                sw.Flush();
 
-                        _logger.LogInformation($"Decoded response yielding url [ {demo.DownloadUrl} ] and matchdate [ {demo.MatchDate} ] for [ {sharingCode} ].");
-                        return demo;
+                                var response = sr.ReadLine();
+
+                                _logger.LogInformation($"Received response [ {response} ] for [ {sharingCode} ].");
+                                var demo = DecodeResponse(response);
+
+                                _logger.LogInformation($"Decoded response yielding url [ {demo.DownloadUrl} ] and matchdate [ {demo.MatchDate} ] for [ {sharingCode} ].");
+                                return demo;
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, $"Failed message. Waiting {_reconnectTimeout}ms and trying again.");
+                        Thread.Sleep(_reconnectTimeout);
                     }
                 }
             }

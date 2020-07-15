@@ -31,6 +31,7 @@ namespace SteamworksService
         /// Interval to wait between failed messages.
         /// </summary>
         private const int _reconnectTimeout = 30 * 1000;
+        private const int maxAttempts = 3;
         private static readonly Object obj = new Object();
 
         public SteamworksCommunicator(ILogger<ISteamworksCommunicator> logger)
@@ -50,6 +51,7 @@ namespace SteamworksService
         {
             lock (obj)
             {
+                var failedAttempts = 0;
                 while (true)
                 {
                     try
@@ -75,13 +77,19 @@ namespace SteamworksService
                                 var demo = DecodeResponse(response);
 
                                 _logger.LogInformation($"Decoded response yielding url [ {demo.DownloadUrl} ] and matchdate [ {demo.MatchDate} ] for [ {sharingCode} ].");
+                                failedAttempts = 0;
                                 return demo;
                             }
                         }
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, $"Failed message. Waiting {_reconnectTimeout}ms and trying again.");
+                        failedAttempts++;
+                        if(failedAttempts >= maxAttempts)
+                        {
+                            throw e;
+                        }
+                        _logger.LogError(e, $"Failed message. Waiting {_reconnectTimeout}ms and trying again. Failed Attempts: [ {failedAttempts} ].");
                         Thread.Sleep(_reconnectTimeout);
                     }
                 }

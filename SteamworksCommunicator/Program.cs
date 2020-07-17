@@ -40,7 +40,7 @@ namespace SteamworksService
                     var AMQP_URI = GetRequiredEnvironmentVariable<string>(hostContext.Configuration, "AMQP_URI");
                     var AMQP_DEMOCENTRAL_QUEUE = GetRequiredEnvironmentVariable<string>(hostContext.Configuration, "AMQP_DEMOCENTRAL_QUEUE");
                     var AMQP_GATHERER_QUEUE = GetRequiredEnvironmentVariable<string>(hostContext.Configuration, "AMQP_GATHERER_QUEUE");
-                    var AMQP_PREFETCH_COUNT = GetOptionalEnvironmentVariable<ushort>(hostContext.Configuration, "AMQP_PREFETCH_COUNT", 0);
+                    var AMQP_PREFETCH_COUNT = GetOptionalEnvironmentVariable<ushort>(hostContext.Configuration, "AMQP_PREFETCH_COUNT", 1);
 
                     Console.WriteLine("Environment: ");
                     Console.WriteLine($"AMQP_URI: [ {AMQP_URI} ]");

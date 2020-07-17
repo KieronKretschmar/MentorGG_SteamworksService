@@ -8,5 +8,5 @@ Needs to run in the same container as [SteamworksConnectionLinux](https://gitlab
 - `AMQP_URI` : RabbitMQ Instance URI [\*]
 - `AMQP_GATHERER_QUEUE` : Queue to consume from, should be connected to SharingCodeGatherer. [\*]
 - `AMQP_DEMOCENTRAL_QUEUE` : Queue to publish to, should be connected to DemoCentral. [\*]
-- `AMQP_PREFETCH_COUNT` : Prefetch count for incoming queue. Defaults to 0.
+- `AMQP_PREFETCH_COUNT` : Prefetch count for incoming queue. Defaults to 1.
 
